@@ -1,0 +1,62 @@
+---
+title: "Reproducible code with R workshop"
+output: html_notebook
+---
+
+This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code. 
+
+Try executing this chunk by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Ctrl+Shift+Enter*. 
+
+```{r}
+plot(cars)
+```
+
+Add a new chunk by clicking the *Insert Chunk* button on the toolbar or by pressing *Ctrl+Alt+I*.
+
+```{r}
+library(RCurl)
+df<-read.csv(text=getURL("https://raw.githubusercontent.com/BES2016Workshop/reproduciblecodeR/master/iris.csv"))
+```
+
+```{r}
+str(df)
+```
+
+```{r}
+head(df)
+```
+
+```{r}
+library(tidyr)
+?gather
+df_tidy <- gather(df, species, value, -measurement) %>%
+  separate(measurement, c("sample", "measurement"), sep="_") %>%
+  spread(measurement, value)
+str(df_tidy)
+```
+
+```{r}
+library(dplyr)
+?summarise_each
+??group_by
+df_summary <- group_by(df_tidy, species) %>%
+  select(-sample) %>% # we are not interested in sample
+  summarise_each(c("mean", "sd"))
+df_summary
+```
+
+```{r}
+library(broom)
+iris<-lm(Petal.Length~Petal.Width,data=df_tidy)
+tidy(iris)
+```
+```{r}
+library(ggplot2)
+library(cowplot)
+p<-ggplot(df_tidy,aes(x=Petal.Width,y=Petal.Length, colour=species))+
+  geom_point()+
+  geom_smooth(method="lm")
+p
+```
+
+When you save the notebook, an HTML file containing the code and output will be saved alongside it (click the *Preview* button or press *Ctrl+Shift+K* to preview the HTML file).
